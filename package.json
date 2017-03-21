@@ -35,9 +35,10 @@
   },
   "pre-commit": "lint-staged",
   "dependencies": {
-    "babel-cli": "^6.23.0",
+    "babel-cli": "^6.24.0",
     "babel-core": "^6.23.1",
     "babel-preset-env": "^1.1.11",
+    "lodash": "^4.17.4",
     "rimraf": "^2.6.1"
   },
   "babel": {
