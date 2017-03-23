@@ -3,8 +3,6 @@ import { EventEmitter } from "events";
 import HttpRequest from "./http-request";
 import HttpResponse from "./http-response";
 
-// const net = require('net');
-// const Listeners = require("./listeners");
 
 class HTTP extends EventEmitter {
   constructor() {

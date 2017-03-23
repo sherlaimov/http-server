@@ -9,18 +9,19 @@ const server = myHttp.createServer();
 server.listen({ port: 3000 });
 
 server.on("request", (req, res) => {
-  //   console.log(req.headers);
-  //   console.log(req.method);
-  //   console.log(req.url);
+  req.on('error', (err) => global.console.log(err));
   // console.log(res);
+  // req.on('data', (data) => console.log(data.toString('utf8')));
   const resolvedPath = path.resolve(config.rootDir, `./${req.url}`);
   checkPath(resolvedPath)
-    .then(data => data.isDirectory())
     .then(data => {
-      if (data) {
+      if (data.isDirectory()) {
         return readdirAsync(resolvedPath);
       } else {
+        console.log(data);
+        res.setHeader("Content-Length", `${data.size}`);
         res.setHeader("Content-type", "text/html; charset=utf-8");
+        res.setHeader("Server", "Node Javascript.Ninja");
         fs.createReadStream(resolvedPath).pipe(res);
         return false;
       }
@@ -29,23 +30,29 @@ server.on("request", (req, res) => {
       if (files) {
         if (files.includes("index.html")) {
           res.setHeader("Content-type", "text/html; charset=utf-8");
+          const {size} = fs.statSync(`${resolvedPath}/index.html`);
+          res.setHeader("Content-Length", `${size}`);
           fs.createReadStream(`${resolvedPath}/index.html`).pipe(res);
-        } else if (resolvedPath === "/") {
+        } else if (req.url === "/") {
+          const {size} = fs.statSync(`${resolvedPath}/static/index.html`);
+          res.setHeader("Content-Length", `${size}`);
           res.setHeader("Content-type", "text/html; charset=utf-8");
-          fs.createReadStream("./static/index.html").pipe(res);
-        }
+          fs.createReadStream(`${resolvedPath}/static/index.html`).pipe(res);
+        } 
       }
     })
     .catch(e => {
       console.log("Unhandled error");
-      console.log(e);
+      // console.log(e);
       if (e.code === "ENOENT") {
         console.log("GOES DOWN HERE");
-        // socket.write(writeHeaders(400, "text/html"));
-        fs.createReadStream("./static/404.html").pipe(res);
+        const size = fs.statSync("./src/static/404.html").size;
+        res.setHeader("Content-Length", `${size}`);
+        res.setHeader("Content-type", "text/html; charset=utf-8");
+        fs.createReadStream("./src/static/404.html").pipe(res);
       }
     });
-  
+
   // res.setHeader("Content-Type", "application/json");
   //   res.writeHead(200) //Вызов writeHead опционален
   //   fs.createReadStream('somefile.txt').then(s => s.pipe(res));

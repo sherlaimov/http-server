@@ -5,11 +5,11 @@ class HttpRresponse extends Writable {
     super();
     this.socket = socket;
     this.headersSent = false;
-    this.headers = ['HTTP/1.x 200'];
+    this.headers = ['HTTP/1.x 200 OK'];
   }
 
   _write(chunk, encoding, callback) {
-    console.log(this.headers);
+    this.sendHeaders();
     this.socket.write(chunk);
     callback();
   }
@@ -28,7 +28,9 @@ class HttpRresponse extends Writable {
       this.emit("error", () =>
         console.log("Cannot set header after headers are sent"));
     }
-    const headers = this.headers.join("\r\n") + "\r\n";
+    const headers = this.headers.join("\r\n") + "\r\n\r\n";
+    // console.log(headers);
+    // console.log(headers.includes('\r\n\r\n'));
     this.headersSent = true;
     this.socket.write(headers);
   }

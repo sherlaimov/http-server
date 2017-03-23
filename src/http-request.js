@@ -5,17 +5,20 @@ class HttpRequest extends Readable {
     super();
     this.headersReceived = false;
     this.headers = null;
+    this.method = null;
+    this.url = null;
     this.socket = socket;
     this.RNRN = Buffer.from("\r\n\r\n");
     this.buffer = Buffer.alloc(0);
     this.socket
       .on("data", this.onData.bind(this))
-      .on("error", err => console.log(err))
-      .on("end", () => console.log("client disconnected"))
-      .on("close", () => console.log("socket closed"));
+      .on("error", this.onError.bind(this))
+      .on("end",  this.onEnd.bind(this))
+      .on("close", () => global.console.log("socket closed"));
   }
 
   _read() {
+    console.log("*** _read FIRED ***");
     this.socket.resume();
   }
 
@@ -26,23 +29,38 @@ class HttpRequest extends Readable {
 
       if (breakPos !== -1) {
         this.headersReceived = true;
+        this.socket.pause();
         const headersBuf = this.buffer.slice(0, breakPos);
-        this.headers = this.parseHeaders(headersBuf).headers;
-        this.method = this.parseHeaders(headersBuf).method;
-        this.url = this.parseHeaders(headersBuf).url;
+        this.parseHeaders(headersBuf);
         const bodyBuf = this.buffer.slice(breakPos + this.RNRN.length);
         if (bodyBuf.length) {
           this.socket.unshift(bodyBuf);
         }
-        // this.socket.pause();
+        // WITHOUT headers?
+        this.push(bodyBuf);
         this.emit("headers", this);
       }
     } else {
+      console.log("*** headersReceived **** now receiving body");
       //  push causes _read to fire
       this.push(data);
       //  when paused no data event would fire
       this.socket.pause();
     }
+    console.log(data.toString("utf8"));
+    // this.push(data);
+  }
+
+  onEnd() {
+    global.console.log("client disconnected");
+    this.removeAllListeners('data');
+    this.removeAllListeners('end');
+    this.push(null);
+  }
+
+  onError(err) {
+    global.console.log(err);
+    this.emit('error', err);
   }
 
   parseHeaders(data) {
@@ -55,6 +73,9 @@ class HttpRequest extends Readable {
     string.forEach(header => {
       parsed.headers[header.split(":")[0]] = header.split(":")[1].trim();
     });
+    this.headers = parsed.headers;
+    this.url = parsed.url;
+    this.method = parsed.method;
     return parsed;
   }
 }
