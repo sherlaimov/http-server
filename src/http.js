@@ -14,11 +14,7 @@ class HTTP extends EventEmitter {
   onConnection(socket) {
     const req = new HttpRequest(socket);
     const res = new HttpResponse(socket);
-    // req.on("headers", () => this.emit("request", req, res));
-    req.on("headers", () => {
-      // console.log("*** headers fired ***");
-      this.emit('request', req, res);
-    });
+    req.on("headers", () => this.emit('request', req, res));
   }
 
   listen(options) {

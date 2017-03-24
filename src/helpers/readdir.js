@@ -12,4 +12,4 @@ const readdirAsync = function readDir(path) {
     })
 }
 
-module.exports = readdirAsync;
+export default readdirAsync;

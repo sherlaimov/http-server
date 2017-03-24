@@ -34,6 +34,7 @@ class HttpRequest extends Readable {
         this.parseHeaders(headersBuf);
         const bodyBuf = this.buffer.slice(breakPos + this.RNRN.length);
         if (bodyBuf.length) {
+          console.log('*** UNSHIFT DATA ***');
           this.socket.unshift(bodyBuf);
         }
         // WITHOUT headers?
@@ -47,7 +48,7 @@ class HttpRequest extends Readable {
       //  when paused no data event would fire
       this.socket.pause();
     }
-    console.log(data.toString("utf8"));
+    // console.log(data.toString("utf8"));
     // this.push(data);
   }
 
