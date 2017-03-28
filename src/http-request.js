@@ -23,6 +23,7 @@ class HttpRequest extends Readable {
   }
 
   onData(data) {
+    console.log('*** onData ***');
     if (!this.headersReceived) {
       this.buffer = Buffer.concat([this.buffer, data]);
       const breakPos = this.buffer.indexOf(this.RNRN);
@@ -33,6 +34,7 @@ class HttpRequest extends Readable {
         const headersBuf = this.buffer.slice(0, breakPos);
         this.parseHeaders(headersBuf);
         const bodyBuf = this.buffer.slice(breakPos + this.RNRN.length);
+        this.socket.removeListener('data', this.onData);
         if (bodyBuf.length) {
           console.log('*** UNSHIFT DATA ***');
           this.socket.unshift(bodyBuf);

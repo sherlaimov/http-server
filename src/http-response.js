@@ -18,8 +18,7 @@ class HttpRresponse extends Writable {
 
   setHeader(headerName, value) {
     if (this.headersSent) {
-      this.emit("error", "Cannot set header after headers are sent");
-      return;
+      throw new Error('Cannot set header after headrs are sent');
     }
     this.headers.push(`${headerName}: ${value}`);
   }
@@ -28,21 +27,24 @@ class HttpRresponse extends Writable {
   writeHead(code) {
     // TODO:: should send headers?
     this.headers.splice(0, 1, `HTTP/1.x ${code}`);
+    this.sendHeaders();
   }
 
   sendHeaders() {
-    if (this.headersSent) {
-      this.emit("error", "Cannot send headers after headers are sent");
-      return;
-    }
+    // if (this.headersSent) {
+    //   this.emit("error", "Cannot send headers after headers are sent");
+    //   return;
+    // }
     const headers = this.headers.join("\r\n") + "\r\n\r\n";
-    // console.log(headers);
-    // console.log(headers.includes('\r\n\r\n'));
     this.headersSent = true;
     this.socket.write(headers);
   }
-  end(){
-    this.socket.end();
+  end(...args){
+    console.log('*** response end ***');
+    console.log(this.headers);
+    // content-length && connection !== close
+    // return args.length > 0 ? this.socket.write(args) : true;
+    // this.socket.end();
   }
 }
 
