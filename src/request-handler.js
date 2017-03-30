@@ -9,24 +9,23 @@ export default (req, res) => {
   req.on("error", err => global.console.log(err));
   res.on("error", err => {
     global.console.log(err);
-    res.end();
   });
-  // res.on('pipe', (data) => console.log(data));
-  // console.log(res);
-  // req.on('data', (data) => console.log(data.toString('utf8')));
+
   const resolvedPath = path.resolve(config.rootDir, `./${req.url}`);
   checkPath(resolvedPath)
     .then(data => {
       if (data.isDirectory()) {
         return readdirAsync(resolvedPath);
-      } else {
-        res.setHeader("Content-Length", `${data.size}`);
-        res.setHeader("Content-Type", mime.contentType(path.extname(resolvedPath)));
-        res.setHeader("Server", "NodeJS Javascript.Ninja");
-        res.setHeader("Connection", "keep-alive");
-        fs.createReadStream(resolvedPath).pipe(res);
-        return false;
       }
+      res.setHeader("Content-Length", `${data.size}`);
+      res.setHeader(
+        "Content-Type",
+        mime.contentType(path.extname(resolvedPath))
+      );
+      res.setHeader("Server", "NodeJS Javascript.Ninja");
+      res.setHeader("Connection", "keep-alive");
+      fs.createReadStream(resolvedPath).pipe(res);
+      return false;
     })
     .then(files => {
       if (files) {
@@ -44,19 +43,19 @@ export default (req, res) => {
       }
     })
     .catch(e => {
-      console.log("*** Error to be caught ***");
+      global.console.log("*** Error to be caught ***");
       // Error code for permission denied?
       // EPERM??
       if (e.code === "ENOENT") {
-        const size = fs.statSync("./src/static/404.html").size;
+        const { size } = fs.statSync("./src/static/404.html");
         res.setHeader("Content-Length", `${size}`);
         res.setHeader("Content-type", "text/html; charset=utf-8");
         res.writeHead(404);
         fs.createReadStream("./src/static/404.html").pipe(res);
-      } else if (e.code === "EPERM") {
+      } else if (e.code === "EACCES") {
         res.setHeader("Content-type", "text/html; charset=utf-8");
         res.writeHead(400);
-        res.write('Permission denied for this resource');
+        res.end("Permission denied for this resource");
       }
     });
 };

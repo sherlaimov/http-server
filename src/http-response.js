@@ -9,7 +9,7 @@ class HttpRresponse extends Writable {
   }
 
   _write(chunk, encoding, callback) {
-    if ( ! this.headersSent) {
+    if (!this.headersSent) {
       this.sendHeaders();
     }
     this.socket.write(chunk);
@@ -18,33 +18,33 @@ class HttpRresponse extends Writable {
 
   setHeader(headerName, value) {
     if (this.headersSent) {
-      throw new Error('Cannot set header after headrs are sent');
+      this.emit('error', 'Cannot set header after headrs are sent');
     }
     this.headers.push(`${headerName}: ${value}`);
   }
 
   // optional method
   writeHead(code) {
-    // TODO:: should send headers?
     this.headers.splice(0, 1, `HTTP/1.x ${code}`);
     this.sendHeaders();
   }
 
   sendHeaders() {
-    // if (this.headersSent) {
-    //   this.emit("error", "Cannot send headers after headers are sent");
-    //   return;
-    // }
+    if (this.headersSent) {
+      this.emit("error", "Cannot send headers after headers are sent");
+      return;
+    }
     const headers = this.headers.join("\r\n") + "\r\n\r\n";
     this.headersSent = true;
     this.socket.write(headers);
   }
-  end(...args){
-    console.log('*** response end ***');
-    console.log(this.headers);
+  end(...args) {
     // content-length && connection !== close
-    // return args.length > 0 ? this.socket.write(args) : true;
-    // this.socket.end();
+    if (args.length > 0) {
+      this.socket.write(args.join("\r\n"));
+      this.socket.end();
+    }
+    this.socket.end();
   }
 }
 

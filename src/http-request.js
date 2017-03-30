@@ -18,12 +18,12 @@ class HttpRequest extends Readable {
   }
 
   _read() {
-    console.log("*** _read FIRED ***");
+    global.console.log("*** _read FIRED ***");
     this.socket.resume();
   }
 
   onData(data) {
-    console.log('*** onData ***');
+    global.console.log('*** onData ***');
     if (!this.headersReceived) {
       this.buffer = Buffer.concat([this.buffer, data]);
       const breakPos = this.buffer.indexOf(this.RNRN);
@@ -36,22 +36,20 @@ class HttpRequest extends Readable {
         const bodyBuf = this.buffer.slice(breakPos + this.RNRN.length);
         this.socket.removeListener('data', this.onData);
         if (bodyBuf.length) {
-          console.log('*** UNSHIFT DATA ***');
+          global.console.log('*** UNSHIFT DATA ***');
           this.socket.unshift(bodyBuf);
         }
-        // WITHOUT headers?
+        // WITHOUT headers? 
         this.push(bodyBuf);
         this.emit("headers", this);
       }
     } else {
-      console.log("*** headersReceived **** now receiving body");
+      global.console.log("*** headersReceived **** now receiving body");
       //  push causes _read to fire
       this.push(data);
       //  when paused no data event would fire
       this.socket.pause();
     }
-    // console.log(data.toString("utf8"));
-    // this.push(data);
   }
 
   onEnd() {

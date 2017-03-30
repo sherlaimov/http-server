@@ -20,7 +20,7 @@ class HTTP extends EventEmitter {
   listen(options) {
     this.port = options.port || 3000;
     this.server.listen(this.port, () =>
-      console.log(`Listening on port ${this.port}`));
+      global.console.log(`Listening on port ${this.port}`));
   }
 }
 
