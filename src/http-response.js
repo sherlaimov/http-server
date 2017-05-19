@@ -1,11 +1,13 @@
-import { Writable } from "stream";
+import { Writable } from 'stream';
 
 class HttpRresponse extends Writable {
   constructor(socket) {
     super();
     this.socket = socket;
     this.headersSent = false;
-    this.headers = ["HTTP/1.x 200 OK"];
+    this.statusLine = `HTTP/1.x 200 OK\r\n`;
+    this.headers = {};
+    this.socket.on('error', this.onError.bind(this));
   }
 
   _write(chunk, encoding, callback) {
@@ -17,33 +19,47 @@ class HttpRresponse extends Writable {
   }
 
   setHeader(headerName, value) {
+    // trim values
     if (this.headersSent) {
       this.emit('error', 'Cannot set header after headrs are sent');
     }
-    this.headers.push(`${headerName}: ${value}`);
+    this.headers[headerName.trim()] = value.trim();
   }
 
   // optional method
-  writeHead(code) {
-    this.headers.splice(0, 1, `HTTP/1.x ${code}`);
+  writeHead(code = 200) {
+    if (typeof code !== 'number') {
+      this.emit('error', 'Status code must be a valid number');
+      return;
+    }
+    this.statusLine = `HTTP/1.x ${code}\r\n`;
     this.sendHeaders();
   }
 
   sendHeaders() {
     if (this.headersSent) {
-      this.emit("error", "Cannot send headers after headers are sent");
+      this.emit('error', 'Cannot send headers after headers are sent');
       return;
     }
-    const headers = this.headers.join("\r\n") + "\r\n\r\n";
-    this.headersSent = true;
+    const headers = Object.keys(this.headers).reduce(
+      (a, b) => `${a}${b}: ${this.headers[b]}\r\n`,
+      this.statusLine,
+    ) + '\r\n';
     this.socket.write(headers);
+    this.headersSent = true;
   }
+
+  onError(err) {
+    global.console.log(err);
+    this.emit('error', err);
+  }
+
   end(...args) {
     // content-length && connection !== close
-    if (args.length > 0) {
-      this.socket.write(args.join("\r\n"));
-      this.socket.end();
-    }
+    // if (args.length > 0) {
+    //   this.socket.write(args.join("\r\n"));
+    //   this.socket.end();
+    // }
     this.socket.end();
   }
 }

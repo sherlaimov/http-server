@@ -42,8 +42,12 @@
     "babel-core": "^6.23.1",
     "babel-preset-env": "^1.1.11",
     "lodash": "^4.17.4",
+    "md5-file": "^3.1.1",
     "mime-types": "^2.1.15",
-    "rimraf": "^2.6.1"
+    "proxyquire": "^1.7.11",
+    "random-string": "^0.2.0",
+    "rimraf": "^2.6.1",
+    "supertest": "^3.0.0"
   },
   "ava": {
     "files": [

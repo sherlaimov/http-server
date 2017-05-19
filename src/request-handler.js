@@ -6,11 +6,6 @@ import readdirAsync from "./helpers/readdir";
 import config from "./config";
 
 export default (req, res) => {
-  req.on("error", err => global.console.log(err));
-  res.on("error", err => {
-    global.console.log(err);
-  });
-
   const resolvedPath = path.resolve(config.rootDir, `./${req.url}`);
   checkPath(resolvedPath)
     .then(data => {
