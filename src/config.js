@@ -4,4 +4,6 @@ const config = {
   debug: true
 };
 
+config.publicDir = `${config.rootDir}/static`;
+
 export default config;

@@ -5,7 +5,8 @@ class HttpRresponse extends Writable {
     super();
     this.socket = socket;
     this.headersSent = false;
-    this.statusLine = `HTTP/1.x 200 OK\r\n`;
+    this.codeStatus = 200;
+    this.statusLine = `HTTP/1.x ${this.codeStatus} OK\r\n`;
     this.headers = {};
     this.socket.on('error', this.onError.bind(this));
   }
@@ -27,7 +28,7 @@ class HttpRresponse extends Writable {
   }
 
   // optional method
-  writeHead(code = 200) {
+  writeHead(code) {
     if (typeof code !== 'number') {
       this.emit('error', 'Status code must be a valid number');
       return;
@@ -35,16 +36,22 @@ class HttpRresponse extends Writable {
     this.statusLine = `HTTP/1.x ${code}\r\n`;
     this.sendHeaders();
   }
-
+  setStatus(code) {
+    if (typeof code !== 'number') {
+      this.emit('error', 'Status code must be a valid number');
+      return;
+    }
+    this.statusLine = `HTTP/1.x ${code}\r\n`;
+  }
   sendHeaders() {
     if (this.headersSent) {
       this.emit('error', 'Cannot send headers after headers are sent');
       return;
     }
-    const headers = Object.keys(this.headers).reduce(
+    const headers = `${Object.keys(this.headers).reduce(
       (a, b) => `${a}${b}: ${this.headers[b]}\r\n`,
-      this.statusLine,
-    ) + '\r\n';
+      this.statusLine
+    )}\r\n`;
     this.socket.write(headers);
     this.headersSent = true;
   }

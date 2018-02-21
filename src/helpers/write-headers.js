@@ -6,8 +6,7 @@ const writeHeaders = function writeHeaders(code, cType) {
     `Content-Type: ${cType}`,
     '\r\n'
   ].join('\r\n');
-  console.log(headers);
   return headers;
-}
+};
 
 module.exports = writeHeaders;
