@@ -62,11 +62,7 @@ class HttpRresponse extends Writable {
   }
 
   end(...args) {
-    // content-length && connection !== close
-    // if (args.length > 0) {
-    //   this.socket.write(args.join("\r\n"));
-    //   this.socket.end();
-    // }
+    global.console.log(args);
     this.socket.end();
   }
 }
